@@ -22,7 +22,7 @@ import java.util.Date;
 public class NumatrixNumberGenerator {
 
   private final int instanceId;
-  private final int uniqueueIdBitLength;
+  private final int instanceIdBitLength;
   private long maxTimestamp;
   private int seqNumAndUniqueueIdBitLength;
   private int maxSeqNum = Integer.MIN_VALUE;
@@ -33,14 +33,11 @@ public class NumatrixNumberGenerator {
    * 指定されたIDで生成します.
    *
    * @param generatorId このインスタンスのID
+   * @param generatorIdBitLength このインスタンスのIDのビット長
    */
-  public NumatrixNumberGenerator(int generatorId) {
+  public NumatrixNumberGenerator(int generatorId, int generatorIdBitLength) {
     instanceId = generatorId;
-    int uniqueueIdBitCount = 1;
-    while (0 < (generatorId >>> uniqueueIdBitCount)) {
-      uniqueueIdBitCount++;
-    }
-    uniqueueIdBitLength = uniqueueIdBitCount;
+    this.instanceIdBitLength = generatorIdBitLength;
   }
 
   /**
@@ -50,11 +47,11 @@ public class NumatrixNumberGenerator {
    */
   private final void init() throws NumatrixNumberGenerateException {
     maxTimestamp = (1L << getTimestampBitLength()) - 1;
-    int seqNumBitLength = (isOutMinus() ? 64 : 63) - uniqueueIdBitLength - getTimestampBitLength();
+    int seqNumBitLength = (isOutMinus() ? 64 : 63) - instanceIdBitLength - getTimestampBitLength();
     if (seqNumBitLength <= 0) {
       throw new NumatrixNumberGenerateException("number stracture size over 64bits.");
     }
-    seqNumAndUniqueueIdBitLength = uniqueueIdBitLength + seqNumBitLength;
+    seqNumAndUniqueueIdBitLength = instanceIdBitLength + seqNumBitLength;
     maxSeqNum = (1 << seqNumBitLength) - 1;
   }
 
@@ -139,7 +136,7 @@ public class NumatrixNumberGenerator {
     }
     int seqNum = currentSeqNum++;
     long timestampFild = ((long) timestamp) << (seqNumAndUniqueueIdBitLength);
-    long seqNumFild = ((long) seqNum) << uniqueueIdBitLength;
+    long seqNumFild = ((long) seqNum) << instanceIdBitLength;
     return timestampFild | seqNumFild | (long) instanceId;
   }
 

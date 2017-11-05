@@ -13,8 +13,9 @@ import mockit.MockUp;
 
 public class NumatrixNumberGeneratorFactoryTest {
 
-  final int jvmId = 9;
-  final int maxGenetarotCount = 100;
+  final int jvmId = 2;
+  final int maxGenetarotCount = 64;
+  final int maxJvmCount = 4;
 
   abstract class AbstractNumatrixNumberGeneratorFactory extends NumatrixNumberGeneratorFactory {
     @Override
@@ -25,6 +26,11 @@ public class NumatrixNumberGeneratorFactoryTest {
     @Override
     protected int getMaxGeneratorCount() {
       return maxGenetarotCount;
+    }
+
+    @Override
+    protected int getMaxJvmCount() {
+      return maxJvmCount;
     }
   }
 
@@ -50,18 +56,19 @@ public class NumatrixNumberGeneratorFactoryTest {
   public void 複数のファクトリから個別にインスタンスをGETできる() throws Exception {
     new MockUp<NumatrixNumberGenerator>() {
       @Mock
-      void $init(Invocation inv, int paramGeneratorId) {
-        switch (+inv.getInvocationCount()) {
+      void $init(Invocation inv, int paramGeneratorId, int paramGeneratorIdBitCount) {
+        assertThat(paramGeneratorIdBitCount, equalTo(8));
+        switch (inv.getInvocationCount()) {
           case 1:
-            assertThat(paramGeneratorId, equalTo(900));
+            assertThat(paramGeneratorId, equalTo(128));
             type1Generator1 = inv.getInvokedInstance();
             break;
           case 2:
-            assertThat(paramGeneratorId, equalTo(900));
+            assertThat(paramGeneratorId, equalTo(128));
             type2Generator1 = inv.getInvokedInstance();
             break;
           case 3:
-            assertThat(paramGeneratorId, equalTo(901));
+            assertThat(paramGeneratorId, equalTo(129));
             type1Generator2 = inv.getInvokedInstance();
             break;
           default:
@@ -94,7 +101,7 @@ public class NumatrixNumberGeneratorFactoryTest {
 
   @Test
   public void プールに空きがない場合にリフレッシュしてGETする() throws NumatrixNumberGenerateException {
-    final NumatrixNumberGenerator generator = new NumatrixNumberGenerator(1);
+    final NumatrixNumberGenerator generator = new NumatrixNumberGenerator(1, 1);
     new MockUp<RecyclePool<NumatrixNumberGenerator>>() {
       @Mock
       int size() {
@@ -136,6 +143,38 @@ public class NumatrixNumberGeneratorFactoryTest {
     } catch (NumatrixNumberGenerateException e) {
       assertThat(e.getMessage(), equalTo("generator instance count is over maximum. "
           + "please reduce threads that using this class."));
+    }
+  }
+
+  @Test
+  public void jvmIDが大きすぎる場合() throws NumatrixNumberGenerateException {
+    new AbstractNumatrixNumberGeneratorFactory() {
+      @Override
+      protected int getTypeId() {
+        return 3;
+      }
+
+      @Override
+      protected int getJvmId() {
+        return 3;
+      }
+    }.getGenerator();
+    try {
+      new AbstractNumatrixNumberGeneratorFactory() {
+        @Override
+        protected int getTypeId() {
+          return 4;
+        }
+
+        @Override
+        protected int getJvmId() {
+          return 4;
+        }
+      }.getGenerator();
+      fail();
+    } catch (NumatrixNumberGenerateException e) {
+      assertThat(e.getMessage(),
+          equalTo("JVM ID is invalid. " + "please implement to lower getJmvId returns."));
     }
   }
 

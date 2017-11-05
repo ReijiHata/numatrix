@@ -33,6 +33,13 @@ public abstract class NumatrixNumberGeneratorFactory {
   protected abstract int getJvmId();
 
   /**
+   * このクラスを使用するJVM数の上限値を返します.
+   *
+   * @return このクラスを使用するJVM数の上限値
+   */
+  protected abstract int getMaxJvmCount();
+
+  /**
    * クラス毎の{@link NumatrixNumberGenerator}インスタンス数の上限値を返します.<br>
    *
    * @return クラス毎の{@link NumatrixNumberGenerator}インスタンス数の上限値
@@ -43,11 +50,12 @@ public abstract class NumatrixNumberGeneratorFactory {
    * {@link NumatrixNumberGenerator}インスタンスを生成します.<br>
    * {@link NumatrixNumberGenerator}を継承したクラスを生成させたい場合、オーバーライドして戻り値を変更してください。
    *
-   * @param generatorId {@link NumatrixNumberGenerator}インスタンスのID
+   * @param generatorId {@link NumatrixNumberGenerator}のインスタンスのID
+   * @param generatorIdBitLength {@link NumatrixNumberGenerator}のインスタンスのIDのビット長
    * @return {@link NumatrixNumberGenerator}インスタンス
    */
-  protected NumatrixNumberGenerator makeGenerator(int generatorId) {
-    return new NumatrixNumberGenerator(generatorId);
+  protected NumatrixNumberGenerator makeGenerator(int generatorId, int generatorIdBitLength) {
+    return new NumatrixNumberGenerator(generatorId, generatorIdBitLength);
   }
 
   /**
@@ -85,8 +93,17 @@ public abstract class NumatrixNumberGeneratorFactory {
           generatorNumberMap.put(getTypeId(), generatorNumber);
         }
       }
+      int maxGeneratorId = (getMaxJvmCount() * getMaxGeneratorCount()) - 1;
       int generatorId = (getJvmId() * getMaxGeneratorCount()) + generatorNumber.getAndIncrement();
-      generator = makeGenerator(generatorId);
+      if (generatorId > maxGeneratorId) {
+        throw new NumatrixNumberGenerateException(
+            "JVM ID is invalid. " + "please implement to lower getJmvId returns.");
+      }
+      int generatorIdBitCount = 1;
+      while (0 < (maxGeneratorId >>> generatorIdBitCount)) {
+        generatorIdBitCount++;
+      }
+      generator = makeGenerator(generatorId, generatorIdBitCount);
       generatorPool.add(generator);
     }
     return generator;

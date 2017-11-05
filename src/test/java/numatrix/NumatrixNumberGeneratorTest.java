@@ -13,9 +13,9 @@ public class NumatrixNumberGeneratorTest {
 
   @Test
   public void インスタンスIDが大きすぎる場合に例外が発生するテスト() throws NumatrixNumberGenerateException {
-    new NumatrixNumberGenerator(1073741823).generate();
+    new NumatrixNumberGenerator(1073741823, 30).generate();
     try {
-      new NumatrixNumberGenerator(1073741824).generate();
+      new NumatrixNumberGenerator(1073741824, 31).generate();
       fail();
     } catch (NumatrixNumberGenerateException e) {
       assertThat(e.getMessage(), equalTo("number stracture size over 64bits."));
@@ -24,7 +24,7 @@ public class NumatrixNumberGeneratorTest {
 
   @Test
   public void タイムスタンプが最大値を超えてしまった場合に例外が発生するテスト() throws NumatrixNumberGenerateException {
-    NumatrixNumberGenerator testTarget = new NumatrixNumberGenerator(65535);
+    NumatrixNumberGenerator testTarget = new NumatrixNumberGenerator(65535, 16);
     final long baseTime = testTarget.getBaseTime().getTime();
     new MockUp<System>() {
       @Mock
@@ -52,8 +52,8 @@ public class NumatrixNumberGeneratorTest {
 
   @Test
   public void 連続した番号を使い切ってタイムスタンプが更新されるテスト() throws NumatrixNumberGenerateException {
-    int generatorId = 65535;
-    NumatrixNumberGenerator testTarget = new NumatrixNumberGenerator(generatorId);
+    int generatorId = 21845;
+    NumatrixNumberGenerator testTarget = new NumatrixNumberGenerator(generatorId, 16);
 
     long timestamp = (System.currentTimeMillis() - testTarget.getBaseTime().getTime()) / 1000L;
     for (int i = 0; i <= 32767; i++) {
@@ -73,8 +73,8 @@ public class NumatrixNumberGeneratorTest {
 
   @Test
   public void マイナス出力によって出力できる範囲が大きくなるテスト() throws NumatrixNumberGenerateException {
-    int generatorId = 65535;
-    final NumatrixNumberGenerator testTarget = new NumatrixNumberGenerator(generatorId) {
+    int generatorId = 43690;
+    final NumatrixNumberGenerator testTarget = new NumatrixNumberGenerator(generatorId, 16) {
 
       @Override
       public boolean isOutMinus() {

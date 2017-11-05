@@ -59,8 +59,8 @@ public class RecyclePool<E> {
           break;
         }
       }
-      return myElement;
     }
+    return myElement;
   }
 
   /**
