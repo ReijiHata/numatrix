@@ -155,7 +155,7 @@ public class NumatrixNumberGeneratorEx extends NumatrixNumberGenerator {
 タイムスタンプは基準時間（初期設定で2017年11月3日0時）から経過した秒数なので、**基準時間を変更することで利用できる期限を延長できます。**
 ### 基準時間の変更
 基準時間を変更します。
-基準時間はnumatrixの利用を開始する時間より後の時間を定義してください。
+基準時間はnumatrixの利用を開始する時間より前の時間を定義してください。
 ```
 public class NumatrixNumberGeneratorEx extends NumatrixNumberGenerator {
 
